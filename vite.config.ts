@@ -8,9 +8,7 @@ export default defineConfig({
 
   plugins: [
     react(),
-    // Optional dev plugins (uncomment if needed)
-    // runtimeErrorOverlay(),
-    // ...(isReplitDev ? [cartographer()] : []),
+    // Add any other plugins you need here
   ],
 
   resolve: {
