@@ -1,25 +1,57 @@
-
-import { type Express } from "express";
+import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+import { createServer as createViteServer, createLogger } from "vite";
+import { type Server } from "http";
+import viteConfig from "../vite.config";
+import { nanoid } from "nanoid";
 
-export async function setupDev(app: Express) {
-  // Create Vite in middleware mode
+const viteLogger = createLogger();
+
+export function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+
+// Development Mode: attach Vite middleware for HMR + HTML transformation
+export async function setupVite(app: Express, server: Server) {
   const vite = await createViteServer({
-    server: { middlewareMode: true },
+    ...viteConfig,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      },
+    },
+    server: {
+      middlewareMode: true,
+      hmr: { server },
+      allowedHosts: true,
+    },
     appType: "custom",
   });
 
-  // Attach Vite's middleware (HMR, transforms)
   app.use(vite.middlewares);
 
-  // For all routes, serve and transform index.html
   app.use("*", async (req, res, next) => {
     try {
-      const template = await fs.promises.readFile(
-        path.resolve("client", "index.html"),
-        "utf-8"
+      const clientTemplate = path.resolve(
+        import.meta.dirname,
+        "..",
+        "client",
+        "index.html"
+      );
+      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`
       );
       const html = await vite.transformIndexHtml(req.originalUrl, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(html);
@@ -27,5 +59,17 @@ export async function setupDev(app: Express) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }
+  });
+}
+
+// Production Mode: serve built static files from dist/public
+export function serveStatic(app: Express) {
+  const publicDir = path.resolve(process.cwd(), "dist", "public");
+  if (!fs.existsSync(publicDir)) {
+    throw new Error(`Missing build folder: ${publicDir}`);
+  }
+  app.use(express.static(publicDir));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(publicDir, "index.html"));
   });
 }
