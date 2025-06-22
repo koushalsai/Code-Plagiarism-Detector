@@ -8,13 +8,6 @@ import CodeEditor from "@/components/CodeEditor";
 import ResultsSection from "@/components/ResultsSection";
 import InformationSection from "@/components/InformationSection";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Search, Clock, Settings, FolderSync } from "lucide-react";
 import { LANGUAGES } from "@/lib/languages";
