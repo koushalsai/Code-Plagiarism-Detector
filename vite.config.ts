@@ -24,7 +24,7 @@ export default defineConfig({
   },
 
   build: {
-    outDir: fileURLToPath(new URL("../dist/public", import.meta.url)), // Output goes to dist/public
+    outDir: fileURLToPath(new URL("./dist/public", import.meta.url)), // Output goes to dist/public
     emptyOutDir: true,
   },
 });
