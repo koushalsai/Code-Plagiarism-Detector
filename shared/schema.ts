@@ -1,4 +1,13 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { 
+  pgTable, 
+  text, 
+  serial, 
+  integer, 
+  boolean, 
+  jsonb, 
+  timestamp, 
+  real 
+} from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 // Plagiarism analysis results schema
@@ -16,10 +25,14 @@ export const plagiarismAnalyses = pgTable("plagiarism_analyses", {
   tokensAnalyzed: integer("tokens_analyzed").notNull(),
   matchingSegments: integer("matching_segments").notNull(),
   matches: jsonb("matches").notNull(),
+
+  // 🔥 Re-added missing columns
+  semanticSimilarity: real("semantic_similarity"),
+  identifierSimilarity: real("identifier_similarity"),
+
   createdAt: timestamp("created_at", { withTimezone: true })
-               .defaultNow()
-               .notNull(),
-  
+    .defaultNow()
+    .notNull(),
 });
 
 // Zod schemas
